@@ -5,18 +5,10 @@ import (
 	"os/exec"
 )
 
-func runCommand(cmd string) (string, error) {
-	out, err := exec.Command("sh", "-c", cmd).Output()
-	if err != nil {
-		return "", err
-	}
-	return string(out), nil
-}
-
 // BuildImage builds docker image
 func BuildImage(name string, dockerfile string) (string, error) {
 	cmd := fmt.Sprintf("docker image build -t %v . --file %v", name, dockerfile)
-	out, err := runCommand(cmd)
+	out, err := exec.Command("sh", "-c", cmd).Output()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -26,7 +18,7 @@ func BuildImage(name string, dockerfile string) (string, error) {
 //RemoveImage removes docker image
 func RemoveImage(name string) (string, error) {
 	cmd := fmt.Sprintf("docker rmi %v", name)
-	out, err := runCommand(cmd)
+	out, err := exec.Command("sh", "-c", cmd).Output()
 	if err != nil {
 		return "", err
 	}

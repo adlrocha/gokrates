@@ -8,7 +8,7 @@ import (
 )
 
 // CreateWitness creates a new witness for certain computation.
-func CreateWitness(attributes []string) error {
+func CreateWitness(witnessName string, attributes []string) error {
 	fmt.Println("[*] Building witness image ...")
 	_, err := docker.BuildImage("gokrates-witness", dockerfilesPath+"witness")
 	if err != nil {
@@ -30,7 +30,7 @@ func CreateWitness(attributes []string) error {
 	}
 
 	fmt.Println("[*] Storing generated witness")
-	_, err = docker.StoreFiles("gokrates-witness", "/home/zokrates/witness", zkMaterialPath)
+	_, err = docker.StoreFiles("gokrates-witness", "/home/zokrates/witness/"+witnessName+".witness", zkMaterialPath)
 
 	fmt.Println("[*] Removing intermediate images...")
 	_, err = docker.RemoveContainer("gokrates-witness")
