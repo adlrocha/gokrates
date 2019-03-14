@@ -1,0 +1,5 @@
+FROM zokrates
+
+MAINTAINER Alfonso de la Rocha <adlrocha@tutamail.com>
+
+ADD ./zk-material/* ./
