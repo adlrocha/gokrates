@@ -25,12 +25,12 @@ func CreateWitness(witnessName string, attributes []string) error {
 	compilerCode := fmt.Sprintf("./zokrates compute-witness -a %v", attr)
 	_, err = docker.RunContainer("gokrates-witness", "gokrates-witness", compilerCode)
 	if err != nil {
-		fmt.Println("[!] Error compiling program")
+		fmt.Println("[!] Error creating witness")
 		return err
 	}
 
 	fmt.Println("[*] Storing generated witness")
-	_, err = docker.StoreFiles("gokrates-witness", "/home/zokrates/witness/"+witnessName+".witness", zkMaterialPath)
+	_, err = docker.StoreFiles("gokrates-witness", "/home/zokrates/witness", zkMaterialPath+witnessName+".witness")
 
 	fmt.Println("[*] Removing intermediate images...")
 	_, err = docker.RemoveContainer("gokrates-witness")

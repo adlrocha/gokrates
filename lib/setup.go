@@ -18,7 +18,7 @@ func compileZkCode(codeFile string) error {
 	}
 
 	fmt.Println("[*] Compiling program...")
-	compilerCode := fmt.Sprintf("./zokrates compile -i ./code/%v", codeFile)
+	compilerCode := fmt.Sprintf("./zokrates compile -i ./code/%v.code", codeFile)
 	_, err = docker.RunContainer("gokrates-compiler", "gokrates-compiler", compilerCode)
 	if err != nil {
 		fmt.Println("[!] Error compiling program")

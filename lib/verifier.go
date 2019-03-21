@@ -31,6 +31,9 @@ type Proof struct {
 	H   pairings.G1Point
 }
 
+//TODO: Verify the dynamic values that most be retrieved for the specific
+// computation
+
 // func verifyingKey() (vk VerifyingKey) {
 // 	tmpa, tmpb, tmpc, tmpd := big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)
 // 	tmpa.SetString("b8f19d8bd0c4e99b1a5505a2323b05590862d3703c163de79d888065936a887", 16)

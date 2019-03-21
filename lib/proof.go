@@ -34,9 +34,9 @@ func GenerateProof(witnessName string) error {
 	fmt.Println("[*] Storing generated proof")
 	_, err = docker.StoreFiles("gokrates-proof", "/home/zokrates/proof.json", zkMaterialPath)
 
-	fmt.Println("[*] Removing intermediate images...")
-	_, err = docker.RemoveContainer("gokrates-proof")
-	_, err = docker.RemoveImage("gokrates-proof")
+	// fmt.Println("[*] Removing intermediate images...")
+	// _, err = docker.RemoveContainer("gokrates-proof")
+	// _, err = docker.RemoveImage("gokrates-proof")
 
 	return nil
 }

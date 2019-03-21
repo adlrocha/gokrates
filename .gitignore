@@ -1,5 +1,6 @@
 zk-material/*.key
 zk-material/*.inf
+zk-material/*.witness
 zk-material/out
 zk-material/verifier.sol
 zk-material/variables.inf
