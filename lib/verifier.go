@@ -1,11 +1,21 @@
 package lib
 
-import "github.com/adlrocha/gokrates/utils/pairings"
+import (
+	"encoding/json"
+	"fmt"
+	"math/big"
+	"strings"
+
+	"github.com/adlrocha/gokrates/utils/docker"
+	"github.com/adlrocha/gokrates/utils/pairings"
+)
 
 // Verify verifies a proof
 func Verify(witnessName string) error {
 	return nil
 }
+
+// const zkMaterialPath = "./zk-material/"
 
 // VerifyingKey ZK verifier structure
 type VerifyingKey struct {
@@ -16,51 +26,141 @@ type VerifyingKey struct {
 	gammaBeta1 pairings.G1Point
 	gammaBeta2 pairings.G2Point
 	Z          pairings.G2Point
-	IC         []pairings.G1Point
+	IC         [3]pairings.G1Point
 }
 
 // Proof ZK prover structure
 type Proof struct {
-	A   pairings.G1Point
-	A_p pairings.G1Point
-	B   pairings.G2Point
-	B_p pairings.G1Point
-	C   pairings.G1Point
-	C_p pairings.G1Point
-	K   pairings.G1Point
-	H   pairings.G1Point
+	A     pairings.G1Point
+	Ap    pairings.G1Point
+	B     pairings.G2Point
+	Bp    pairings.G1Point
+	C     pairings.G1Point
+	Cp    pairings.G1Point
+	K     pairings.G1Point
+	H     pairings.G1Point
+	Input [2]*big.Int
 }
 
-//TODO: Verify the dynamic values that most be retrieved for the specific
-// computation
+// ProofString auxiliary struct to get Proof points
+type ProofString struct {
+	A  []string   `json:"A"`
+	Ap []string   `json:"A_p"`
+	B  [][]string `json:"B"`
+	Bp []string   `json:"B_p"`
+	C  []string   `json:"C"`
+	Cp []string   `json:"C_p"`
+	K  []string   `json:"K"`
+	H  []string   `json:"H"`
+}
 
-// func verifyingKey() (vk VerifyingKey) {
-// 	tmpa, tmpb, tmpc, tmpd := big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)
-// 	tmpa.SetString("b8f19d8bd0c4e99b1a5505a2323b05590862d3703c163de79d888065936a887", 16)
-// 	tmpb.SetString("3b8e028a169bce1a1a24ba7756e4552aa0d6fa89e2918337bd703d83eaf2b7b", 16)
-// 	tmpc.SetString("2d5a983cd061ab980675598ea6271b508196b41120babd10ceed70626667315a", 16)
-// 	tmpd.SetString("2084e16c4664daa72e32cbde78b2edbdceadcb53046ffa690ccb62375d9a2295", 16)
-// 	vk.A = Pairing.G2Point{[2]G2Point{tmpa, tmpb}, [2]G2Point{tmpc, tmpd}}
+// GenerateVk generate verifying keys
+func GenerateVk(verifierName string) error {
+	fmt.Println("[*] Building verifying image ...")
+	_, err := docker.BuildImage("gokrates-verify", dockerfilesPath+"witness")
+	if err != nil {
+		return err
+	}
 
-// 	tmpa.SetString("1833b9c7d23703424a152393971f9e54e39ff2f45bfb625fcbc6665ee37ef050", 16)
-// 	tmpb.SetString("2630625696e88227fbd4b6b62c9d84076e0dc7ea260497221848fefbf9a5a0fd", 16)
-// 	vk.B = Pairing.G1Point{tmpa, tmpb}
+	// Create verifying keys
+	fmt.Println("[*] Creating verifying key...")
+	compilerCode := fmt.Sprintf("./zokrates export-verifier")
+	_, err = docker.RunContainer("gokrates-verify", "gokrates-verify", compilerCode)
+	if err != nil {
+		fmt.Println("[!] Error creating verifying key")
+		return err
+	}
 
-// 	vk.C = Pairing.G2Point([0x5bb8d155d0eb90f18c8b0d4b51dfb2bc28f02590c9bf57675414801a9edf01d, 0x7d19de94769d1ba6e2759db9764fc7d28df9f43d32973dc52de89975ef728ff], [0x2cdc5afdebbdf04d581ed88d3b2df68e90e02e88ae0c4cdccef5e98e21d2efe0, 0x27172b122523320d8500ed4a8c1e206fbe085a08863334d09c1f5f35044e91e8]);
-// 	vk.gamma = Pairing.G2Point([0xe72e0d5ee5ba6ddeaf8b5b26dbfc3252a4ab38869608a218bb02df20f45d689, 0x103863ad1c684088f364ef0298c34c9592021b8338d76c445b8ce447fb8d970], [0x191de42acc14b028b3a4be55e45d46a1a5d5ae830f03b4c8eff3b8761488dfa6, 0x1af9518a72f4462f3aaf492486193cdb6fbb59422cfe6db6211620952842c40c]);
-// 	vk.gammaBeta1 = Pairing.G1Point(0xe9e603440d912746765bcca0ceb86a5e0b6f6c57414f96c47bf1c7d12eb2632, 0x1ba635bf4ef02457497830ab2ec75cfe78d2ee2ca07721a49926f1d9ce1db101);
-// 	vk.gammaBeta2 = Pairing.G2Point([0x25d7e22214429dad86f375be622b0c816296d0de89c70434fb964ac1d147840e, 0x131d4721e408a677a6b6065217151254db81acb1bb2b91c046d282b6f9c3e573], [0xe17f9016c3d43ca2c1a51deeb9748e209371256e7fc99ea689f0542878e44b2, 0xdd005f46c343ef314d7569bc54db078c6935e4e43b8c18f9dd67e30a6a9a6b5]);
-// 	vk.Z = Pairing.G2Point([0xb9a5be62d9b49b80dd791e466035ad21c18a97855b134f93f334c992cf21a4d, 0x28d101e2f84c701dc9aeabe7c8892c28801055944047e79e2579172a9ffacc9a], [0x81501da2b5f4499aecfa215cb650ddcb001ffe62996ce2158c795ba256e86b, 0x134ebacd0991d4ff16eaffcc7f36234898829b8f12b47cbcde42e3c2ecf3cd42]);
-// 	vk.IC = new Pairing.G1Point[](3);
-// 	vk.IC[0] = Pairing.G1Point(0x176e26add417bbe292e2ee31604b7a1e817a8f44d861e49e4fd939f1f89eca53, 0x14fa2f17775dfc1d6addcf0c884fd6396a356a0edc5830d784d8a2f0c3fc77be);
-// 	vk.IC[1] = Pairing.G1Point(0x2f09faab4ac67dcad75ca222c6340e4f6eecedbeda24ead9244948cfefde7121, 0x23e88a720eb6b4a70e21725d36b8ad837d0cda42d0e5c537d10a45702ef4b4ea);
-// 	vk.IC[2] = Pairing.G1Point(0x8e5e5da475f6eb40e0e9d02e9805b83870d5949e012dffed269ac02d1132bbb, 0x22fd0dbd086c28b0ded52042cf54a095568bb52e7daca8fc6bb7abc8494e3750);
+	fmt.Println("[*] Storing generated witness")
+	_, err = docker.StoreFiles("gokrates-verify", "/home/zokrates/verifier.sol", zkMaterialPath+verifierName+".verifier")
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Println("[*] Removing intermediate images...")
+	_, err = docker.RemoveContainer("gokrates-verify")
+	_, err = docker.RemoveImage("gokrates-verify")
+
+	return nil
+}
+
+func GetVerifyingKey(verifierName string) (vk *VerifyingKey) {
+	data := ReadFile(zkMaterialPath + verifierName + ".verifier")
+
+	return &VerifyingKey{
+		A:          verifierG2Point("vk.A", data),
+		B:          verifierG1Point("vk.B", data),
+		C:          verifierG2Point("vk.C", data),
+		gamma:      verifierG2Point("vk.gamma", data),
+		gammaBeta1: verifierG1Point("vk.gammaBeta1", data),
+		gammaBeta2: verifierG2Point("vk.gammaBeta2", data),
+		Z:          verifierG2Point("vk.Z", data),
+		IC: [3]pairings.G1Point{verifierG1Point(`vk.IC\[0\]`, data),
+			verifierG1Point(`vk.IC\[1\]`, data),
+			verifierG1Point(`vk.IC\[2\]`, data)},
+	}
+}
+
+func GetProof(proofName string) (proof *Proof) {
+	// Get the data
+	var proofString map[string]ProofString
+	data := ReadFile(zkMaterialPath + proofName + ".proof")
+	_ = json.Unmarshal([]byte(data), &proofString)
+	proofPoints := proofString["proof"]
+
+	var prInput map[string][]int64
+	_ = json.Unmarshal([]byte(data), &prInput)
+	proofInput := prInput["input"]
+
+	// Create GPoints
+	a0, a1 := big.NewInt(0), big.NewInt(0)
+	a0.SetString(strings.Replace(proofPoints.A[0], "0x", "", -1), 16)
+	a1.SetString(strings.Replace(proofPoints.A[1], "0x", "", -1), 16)
+	ap0, ap1 := big.NewInt(0), big.NewInt(0)
+	ap0.SetString(strings.Replace(proofPoints.Ap[0], "0x", "", -1), 16)
+	ap1.SetString(strings.Replace(proofPoints.Ap[1], "0x", "", -1), 16)
+	b00, b01, b10, b11 := big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0)
+	b00.SetString(strings.Replace(proofPoints.B[0][0], "0x", "", -1), 16)
+	b01.SetString(strings.Replace(proofPoints.B[0][1], "0x", "", -1), 16)
+	b10.SetString(strings.Replace(proofPoints.B[1][0], "0x", "", -1), 16)
+	b11.SetString(strings.Replace(proofPoints.B[1][1], "0x", "", -1), 16)
+	bp0, bp1 := big.NewInt(0), big.NewInt(0)
+	bp0.SetString(strings.Replace(proofPoints.Bp[0], "0x", "", -1), 16)
+	bp1.SetString(strings.Replace(proofPoints.Bp[1], "0x", "", -1), 16)
+	c0, c1 := big.NewInt(0), big.NewInt(0)
+	c0.SetString(strings.Replace(proofPoints.C[0], "0x", "", -1), 16)
+	c1.SetString(strings.Replace(proofPoints.C[1], "0x", "", -1), 16)
+	cp0, cp1 := big.NewInt(0), big.NewInt(0)
+	cp0.SetString(strings.Replace(proofPoints.Cp[0], "0x", "", -1), 16)
+	cp1.SetString(strings.Replace(proofPoints.Cp[1], "0x", "", -1), 16)
+	k0, k1 := big.NewInt(0), big.NewInt(0)
+	k0.SetString(strings.Replace(proofPoints.K[0], "0x", "", -1), 16)
+	k1.SetString(strings.Replace(proofPoints.K[1], "0x", "", -1), 16)
+	h0, h1 := big.NewInt(0), big.NewInt(0)
+	h0.SetString(strings.Replace(proofPoints.H[0], "0x", "", -1), 16)
+	h1.SetString(strings.Replace(proofPoints.H[1], "0x", "", -1), 16)
+
+	return &Proof{
+		A:  pairings.G1Point{X: a0, Y: a1},
+		Ap: pairings.G1Point{X: ap0, Y: ap1},
+		B: pairings.G2Point{
+			X: [2]*big.Int{b00, b01},
+			Y: [2]*big.Int{b10, b11}},
+		Bp:    pairings.G1Point{X: bp0, Y: bp1},
+		C:     pairings.G1Point{X: c0, Y: c1},
+		Cp:    pairings.G1Point{X: cp0, Y: cp1},
+		K:     pairings.G1Point{X: k0, Y: k1},
+		H:     pairings.G1Point{X: h0, Y: h1},
+		Input: [2]*big.Int{big.NewInt(proofInput[0]), big.NewInt(proofInput[1])},
+	}
+}
+
+// TODO: Verify function
+// func Verify(proof *Proof) {
+
 // }
 
 /*
-contract Verifier {
-
-
 
     function verify(uint[] input, Proof proof) internal returns (uint) {
         VerifyingKey memory vk = verifyingKey();

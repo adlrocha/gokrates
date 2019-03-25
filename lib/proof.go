@@ -32,7 +32,7 @@ func GenerateProof(witnessName string) error {
 	}
 
 	fmt.Println("[*] Storing generated proof")
-	_, err = docker.StoreFiles("gokrates-proof", "/home/zokrates/proof.json", zkMaterialPath)
+	_, err = docker.StoreFiles("gokrates-proof", "/home/zokrates/proof.json", zkMaterialPath+witnessName+".proof")
 
 	// fmt.Println("[*] Removing intermediate images...")
 	// _, err = docker.RemoveContainer("gokrates-proof")
