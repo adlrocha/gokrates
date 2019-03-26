@@ -126,6 +126,59 @@ func AdditionG2(p1 G2Point, p2 G2Point) (r G2Point) {
 	return
 }
 
+// func pairing(p1 []G1Point, p2 []G2Point) (bool, error) {
+// 	if len(p1) != len(p2) {
+// 		return false, errors.New("Arguments length incorrect")
+// 	}
+
+// 	elements := len(p1)
+// 	inputSize := elements * 6
+// 	input := make([]*big.Int, inputSize)
+
+// 	for i := 0; i < elements; i++ {
+// 		input[i*6+0] = p1[i].X
+// 		input[i*6+1] = p1[i].Y
+// 		input[i*6+2] = p2[i].X[0]
+// 		input[i*6+3] = p2[i].X[1]
+// 		input[i*6+4] = p2[i].Y[0]
+// 		input[i*6+5] = p2[i].Y[1]
+// 	}
+
+// 	res := pairing(big.NewInt(0).Add())
+// 	call(g, a, v, in, insize, out, outsize)
+// 	success := call(sub(gas, 2000), 8, 0, add(input, 0x20), mul(inputSize, 0x20), out, 0x20)
+// }
+
+/*
+# Main miller loop
+def miller_loop(Q, P):
+    if Q is None or P is None:
+        return FQ12.one()
+    R = Q
+    f = FQ12.one()
+    for i in range(log_ate_loop_count, -1, -1):
+        f = f * f * linefunc(R, R, P)
+        R = double(R)
+        if ate_loop_count & (2**i):
+            f = f * linefunc(R, Q, P)
+            R = add(R, Q)
+    # assert R == multiply(Q, ate_loop_count)
+    Q1 = (Q[0] ** field_modulus, Q[1] ** field_modulus)
+    # assert is_on_curve(Q1, b12)
+    nQ2 = (Q1[0] ** field_modulus, -Q1[1] ** field_modulus)
+    # assert is_on_curve(nQ2, b12)
+    f = f * linefunc(R, Q1, P)
+    R = add(R, Q1)
+    f = f * linefunc(R, nQ2, P)
+    # R = add(R, nQ2) This line is in many specifications but it technically does nothing
+    return f ** ((field_modulus ** 12 - 1) // curve_order)
+
+# Pairing computation
+def pairing(Q, P):
+    assert is_on_curve(Q, b2)
+    assert is_on_curve(P, b)
+    return miller_loop(twist(Q), cast_point_to_fq12(P))
+*/
 /*
 
 /// @return the result of computing the pairing check

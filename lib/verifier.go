@@ -2,6 +2,7 @@ package lib
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -9,11 +10,6 @@ import (
 	"github.com/adlrocha/gokrates/utils/docker"
 	"github.com/adlrocha/gokrates/utils/pairings"
 )
-
-// Verify verifies a proof
-func Verify(witnessName string) error {
-	return nil
-}
 
 // const zkMaterialPath = "./zk-material/"
 
@@ -84,6 +80,7 @@ func GenerateVk(verifierName string) error {
 	return nil
 }
 
+// GetVerifyingKey gets verifying key from zk-material
 func GetVerifyingKey(verifierName string) (vk *VerifyingKey) {
 	data := ReadFile(zkMaterialPath + verifierName + ".verifier")
 
@@ -101,6 +98,7 @@ func GetVerifyingKey(verifierName string) (vk *VerifyingKey) {
 	}
 }
 
+// GetProof gets proof from zk-material
 func GetProof(proofName string) (proof *Proof) {
 	// Get the data
 	var proofString map[string]ProofString
@@ -155,10 +153,21 @@ func GetProof(proofName string) (proof *Proof) {
 	}
 }
 
-// TODO: Verify function
-// func Verify(proof *Proof) {
-
-// }
+// Verify Zk Proof
+func Verify(proof *Proof, vk *VerifyingKey) (uint, error) {
+	// Verify lengths
+	if len(proof.Input)+1 != len(vk.IC) {
+		return 0, errors.New("Proof.Input + 1 and vk.IC lengths not equal")
+	}
+	// Compute linear combination of vk_x
+	vkx := pairings.G1Point{X: big.NewInt(0), Y: big.NewInt(0)}
+	for i := 0; i < len(proof.Input); i++ {
+		vkx = pairings.AdditionG1(vkx, pairings.ScalarMul(vk.IC[i+1], proof.Input[i]))
+	}
+	vkx = pairings.AdditionG1(vkx, vk.IC[0])
+	if()
+	return 0, nil
+}
 
 /*
 
